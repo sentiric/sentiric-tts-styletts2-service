@@ -1,0 +1,52 @@
+# docker-compose.dev.yml
+# Service Geliştirme ortamı
+
+networks:
+  sentiric-net:
+    name: "${NETWORK_NAME:-sentiric-net}"
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${NETWORK_SUBNET}
+          gateway: ${NETWORK_GATEWAY}
+  
+volumes:
+  tts-models:
+    driver: local
+  tts-outputs:
+    driver: local
+
+services:
+  # [capability-tts]: Konuşma Sentezleme Yetenekleri (TTS Capabilities)
+  # --------------------------------------------------  
+  tts-styletts2-service:
+    build: { context: ../sentiric-tts-styletts2-service }
+    env_file: ["${ENV_FILE_PATH}"]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - PYTHONPATH=/app
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]         
+    volumes: 
+      - "${CONFIG_REPO_PATH}:/sentiric-config:ro"
+      - "${CERTIFICATES_REPO_PATH}:/sentiric-certificates:ro"
+      - "${ASSETS_REPO_PATH}:/sentiric-assets:ro"
+      - ./models:/app/models
+      - ./outputs:/app/outputs      
+    ports: 
+      - "14040:${TTS_STYLETTTS2_SERVICE_HTTP_PORT:-14040}"
+      - "14041:${TTS_STYLETTTS2_SERVICE_GRPC_PORT:-14041}"
+      - "14042:${TTS_STYLETTTS2_SERVICE_METRICS_PORT:-14042}"          
+    networks:
+      sentiric-net:
+        ipv4_address: ${TTS_STYLETTTS2_SERVICE_IPV4_ADDRESS}
+    dns:
+      - ${PRIMARY_DNS:-8.8.8.8}
+      - ${SECONDARY_DNS:-1.1.1.1}        
+    restart: always 

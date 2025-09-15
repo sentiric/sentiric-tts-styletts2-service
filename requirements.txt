@@ -1,0 +1,9 @@
+# sentiric-tts-styletts2-service/requirements.txt
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+onnxruntime-gpu==1.16.0
+torch==2.0.1
+torchaudio==2.0.2
+numpy==1.24.3
+scipy==1.11.3
+pydantic==2.5.0
