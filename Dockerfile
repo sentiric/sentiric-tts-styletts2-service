@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     git \
     wget \
     curl \
+    sed \
     && rm -rf /var/lib/apt/lists/*
 
 # Çalışma dizini oluştur
@@ -25,7 +26,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # ONNX Runtime GPU sürümünü yükle
-RUN pip install onnxruntime-gpu
+# Not: Bu satır requirements.txt içinde zaten onnxruntime-gpu olduğu için gereksiz.
+# Eğer requirements.txt'den çıkarılırsa tekrar etkinleştirilebilir.
+# RUN pip install onnxruntime-gpu
 
 # Uygulama kodunu kopyala
 COPY . .
@@ -34,6 +37,8 @@ COPY . .
 RUN mkdir -p /app/models /app/outputs
 
 # Türkçe modeli indirme scripti
+# HATA DÜZELTME: Windows CRLF (\r\n) satır sonlarını Unix LF (\n) formatına çevir
+RUN sed -i 's/\r$//' /app/download_models.sh
 RUN chmod +x /app/download_models.sh
 RUN /app/download_models.sh
 
